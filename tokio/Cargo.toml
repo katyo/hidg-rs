@@ -1,0 +1,35 @@
+[package]
+name = "tokio-hidg"
+description = "Linux USB HID Gadget emulation for tokio async runtime"
+version = "0.1.0"
+authors = ["K. <kayo@illumium.org>"]
+license = "MIT"
+readme = "README.md"
+categories = ["os", "os::linux-apis", "asynchronous"]
+keywords = ["USB", "Gadget", "HID", "Linux", "Input"]
+edition = "2021"
+
+[dependencies.hidg-core]
+path = "../core"
+version = "0.1.0"
+default-features = false
+
+[dependencies.tokio]
+version = "1"
+default-features = false
+features = ["fs", "sync", "io-util", "rt", "net"]
+
+[dev-dependencies.tokio]
+version = "1"
+features = ["macros", "rt-multi-thread"]
+
+[features]
+default = ["fromstr", "display", "phf", "keyboard", "mouse"]
+fromstr = ["hidg-core/fromstr"]
+display = ["hidg-core/display"]
+phf = ["hidg-core/phf"]
+#unicase = ["hidg-core/unicase"]
+either = ["hidg-core/either"]
+serde = ["hidg-core/serde"]
+keyboard = ["hidg-core/keyboard"]
+mouse = ["hidg-core/mouse"]

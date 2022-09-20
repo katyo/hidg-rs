@@ -1,0 +1,31 @@
+[package]
+name = "hidg-cli"
+description = "Linux USB HID Gadget emulation. Command-line tool"
+version = "0.1.0"
+authors = ["K. <kayo@illumium.org>"]
+license = "MIT"
+readme = "README.md"
+categories = ["command-line-utilities"]
+keywords = ["USB", "Gadget", "HID", "Linux", "Input"]
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "hidg"
+path = "src/main.rs"
+
+[dependencies.hidg]
+path = ".."
+version = "0.1.0"
+default-features = false
+features = ["fromstr", "display", "phf", "keyboard", "mouse"]
+
+[dependencies.anyhow]
+version = "1"
+
+[dependencies.clap]
+version = "3"
+features = ["std", "derive"]
+
+[dependencies.rustyline]
+version = "10"
