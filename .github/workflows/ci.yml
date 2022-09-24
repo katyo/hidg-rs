@@ -1,0 +1,270 @@
+name: Rust
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+  pull_request:
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          profile: minimal
+          components: rustfmt
+          default: true
+          override: true
+      - uses: Swatinem/rust-cache@v1
+      - name: Format
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+  doc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          profile: minimal
+          components: rust-docs
+          default: true
+          override: true
+      - uses: Swatinem/rust-cache@v1
+      - name: Documentation
+        uses: actions-rs/cargo@v1
+        env:
+          DOCS_RS: 1
+        with:
+          command: doc
+          args: --all --all-features
+
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          profile: minimal
+          components: clippy
+          default: true
+          override: true
+      - uses: Swatinem/rust-cache@v1
+      - uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --all --all-targets
+
+  # minver:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: actions-rs/toolchain@v1
+  #       with:
+  #         toolchain: nightly
+  #         profile: minimal
+  #         default: true
+  #         override: true
+  #     - uses: Swatinem/rust-cache@v1
+  #     - uses: actions-rs/cargo@v1
+  #       with:
+  #         command: check
+  #         args: --all --all-features --all-targets -Z minimal-versions
+
+  test:
+    needs:
+      - format
+      - doc
+      - check
+    strategy:
+      fail-fast: ${{ startsWith(github.ref, 'refs/tags/') }}
+      matrix:
+        include:
+          # Test features
+          - task: test
+            rust: stable
+            target: x86_64-unknown-linux-gnu
+            features: "''"
+            test_args: --lib
+          - task: test
+            rust: stable
+            target: x86_64-unknown-linux-gnu
+            features: either
+            test_args: --lib
+          - task: test
+            rust: stable
+            target: x86_64-unknown-linux-gnu
+            features: fromstr
+            test_args: --lib
+          - task: test
+            rust: stable
+            target: x86_64-unknown-linux-gnu
+            features: display
+            test_args: --lib
+          - task: test
+            rust: stable
+            target: x86_64-unknown-linux-gnu
+            features: serde
+            test_args: --lib
+          - task: test
+            rust: stable
+            target: x86_64-unknown-linux-gnu
+            features: phf
+            test_args: --lib
+          - task: test
+            rust: stable
+            target: x86_64-unknown-linux-gnu
+            features: keyboard
+            test_args: --lib
+          - task: test
+            rust: stable
+            target: x86_64-unknown-linux-gnu
+            features: mouse
+            test_args: --lib
+          - task: test
+            rust: stable
+            target: x86_64-unknown-linux-gnu
+            features: default
+
+          # Test targets
+          - task: test
+            rust: stable
+            target: i686-unknown-linux-gnu
+            features: default
+          - task: test
+            rust: stable
+            target: x86_64-unknown-linux-gnu
+            features: default
+          - task: test
+            rust: stable
+            target: arm-unknown-linux-gnueabihf
+            features: default
+            test_args: --no-run
+          - task: test
+            rust: stable
+            target: armv7-unknown-linux-gnueabihf
+            features: default
+            test_args: --no-run
+          - task: test
+            rust: stable
+            target: aarch64-unknown-linux-gnu
+            features: default
+            test_args: --no-run
+          - task: test
+            rust: stable
+            target: mips-unknown-linux-gnu
+            features: default
+            test_args: --no-run
+          - task: test
+            rust: stable
+            target: mips64-unknown-linux-gnuabi64
+            features: default
+            test_args: --no-run
+          - task: test
+            rust: stable
+            target: mipsel-unknown-linux-gnu
+            features: default
+            test_args: --no-run
+          - task: test
+            rust: stable
+            target: mips64el-unknown-linux-gnuabi64
+            features: default
+            test_args: --no-run
+          - task: test
+            rust: stable
+            target: powerpc-unknown-linux-gnu
+            features: default
+            test_args: --no-run
+          - task: test
+            rust: stable
+            target: powerpc64-unknown-linux-gnu
+            features: default
+            test_args: --no-run
+          #- task: test
+          #  rust: stable
+          #  target: sparc64-unknown-linux-gnu
+          #  features: default
+          #  test_args: --no-run
+
+          # Test channels
+          - task: channels
+            rust: stable
+            target: x86_64-unknown-linux-gnu
+            features: default
+          - task: channels
+            rust: beta
+            target: x86_64-unknown-linux-gnu
+            features: default
+          - task: channels
+            rust: nightly
+            target: x86_64-unknown-linux-gnu
+            features: default
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup cross linux toolchain
+        if: contains(matrix.target, '-linux-') && !startsWith(matrix.target, 'x86_64-')
+        run: |
+          GCC_TARGET=$(printf "${{ matrix.target }}" | sed 's/-unknown-/-/' | sed 's/arm[^-]*/arm/g')
+          ENV_TARGET=$(printf "${{ matrix.target }}" | tr '-' '_')
+          ENV_TARGET_UC=$(printf "${ENV_TARGET}" | tr '[[:lower:]]' '[[:upper:]]')
+          sudo apt-get update -y
+          sudo apt-get install -y --install-recommends gcc-${GCC_TARGET}
+          echo "CC_${ENV_TARGET}=${GCC_TARGET}-gcc" >> $GITHUB_ENV
+          echo "CARGO_TARGET_${ENV_TARGET_UC}_LINKER=${GCC_TARGET}-gcc" >> $GITHUB_ENV
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          target: ${{ matrix.target }}
+          profile: minimal
+          default: true
+          override: true
+      - uses: Swatinem/rust-cache@v1
+      - name: Update deps
+        uses: actions-rs/cargo@v1
+        with:
+          command: update
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --target ${{ matrix.target }} --no-default-features --features ${{ matrix.features }}
+      - name: Test
+        uses: actions-rs/cargo@v1
+        timeout-minutes: 2
+        env:
+          RUST_BACKTRACE: full
+        with:
+          command: test
+          args: --all --target ${{ matrix.target }} --no-default-features --features ${{ matrix.features }} ${{ matrix.test_args }}
+
+  publish:
+    if: github.repository == 'katyo/hidg-rs' && startsWith(github.ref, 'refs/tags/')
+    needs:
+      - test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - name: Publish crates
+        uses: katyo/publish-crates@v1
+        with:
+          registry-token: ${{ secrets.CRATES_TOKEN }}
+          args: --no-verify
+          #dry-run: true
