@@ -32,32 +32,44 @@ Since all functionality is dependent on Linux function calls, this crate only co
 Keyboard input simulation:
 
 ```no_run
-use async_std_hidg::{Device, Keyboard, StateChange, Key, Led};
+use async_std_hidg::{Class, Device, Keyboard, Key, Led, StateChange};
 
 #[async_std::main]
 async fn main() -> std::io::Result<()> {
-    let mut dev = Device::open(Keyboard, "hidg0").await?; // open device
+    let mut device = Device::<Keyboard>::open("hidg0").await?; // open device
+
+    // Create input report
+    let mut input = Keyboard.input();
 
     // Press left ctrl modifier
-    dev.update(StateChange::press(Key::LeftCtrl)).await?;
+    input.press_key(Key::LeftCtrl);
 
     // Press key 'A'
-    dev.update(StateChange::press(Key::A)).await?;
+    input.press_key(Key::A);
 
-    // Get pressed keys
-    println!("Keys: {:?}", dev.input().await.pressed().collect::<Vec<Key>>());
+    // Print pressed keys
+    println!("Keys: {:?}", input.pressed().collect::<Vec<Key>>());
+
+    // Send input report
+    device.input(&input).await?;
 
     // Release left ctrl modifier
-    dev.update(StateChange::release(Key::LeftCtrl)).await?;
+    input.release_key(Key::LeftCtrl);
 
     // Release key 'A'
-    dev.update(StateChange::release(Key::A)).await?;
+    input.release_key(Key::A);
 
-    // Wait for LEDs updates
-    dev.updated().await?;
+    // Send input report
+    device.input(&input).await?;
 
-    // Get LEDs
-    println!("LEDs: {:?}", dev.output().await.lit().collect::<Vec<Led>>());
+    // Create output report
+    let mut output = Keyboard.output();
+
+    // Receive output report
+    device.output(&mut output).await?;
+
+    // Print lit LEDs
+    println!("LEDs: {:?}", output.lit().collect::<Vec<Led>>());
 
     Ok(())
 }
@@ -66,26 +78,35 @@ async fn main() -> std::io::Result<()> {
 Mouse input simulation:
 
 ```no_run
-use async_std_hidg::{Device, Mouse, StateChange, ValueChange, Button};
+use async_std_hidg::{Button, Class, Device, Mouse, StateChange, ValueChange};
 
 #[async_std::main]
 async fn main() -> std::io::Result<()> {
-    let mut dev = Device::open(Mouse, "hidg0").await?; // open device
+    let mut device = Device::<Mouse>::open("hidg0").await?; // open device
+
+    // Create input report
+    let mut input = Mouse.input();
 
     // Press primary button
-    dev.update(StateChange::press(Button::Primary)).await?;
+    input.press_button(Button::Primary);
 
-    // Update pointer coordinates
-    dev.update(ValueChange::absolute((150, 50))).await?;
+    // Set pointer coordinates
+    input.change_pointer((150, 50), false);
+
+    // Send input report
+    device.input(&input).await?;
 
     // Move pointer relatively
-    dev.update(ValueChange::relative((70, -30))).await?;
+    input.change_pointer((70, -30), true);
 
-    // Get pressed buttons
-    println!("Buttons: {:?}", dev.input().await.pressed().collect::<Vec<Button>>());
+    // Print pressed buttons
+    println!("Buttons: {:?}", input.pressed().collect::<Vec<Button>>());
 
     // Release primary button
-    dev.update(StateChange::release(Button::Primary)).await?;
+    input.release_button(Button::Primary);
+
+    // Send input report
+    device.input(&input).await?;
 
     Ok(())
 }

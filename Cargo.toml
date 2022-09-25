@@ -10,8 +10,7 @@ keywords = ["USB", "Gadget", "HID", "Linux", "Input"]
 edition = "2021"
 
 [workspace]
-members = ["core", "tokio", "async-std", "cli"]
-#members = ["core", "tokio", "async-std", "cli", "cli/tokio", "cli/async-std"]
+members = ["core", "tokio", "async-std"]
 
 [dependencies.hidg-core]
 path = "core"

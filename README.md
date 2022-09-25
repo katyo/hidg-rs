@@ -31,25 +31,43 @@ Since all functionality is dependent on Linux function calls, this crate only co
 Keyboard input simulation:
 
 ```no_run
-use hidg::{Device, Keyboard, StateChange, Key};
+use hidg::{Class, Device, Keyboard, Key, Led, StateChange};
 
 fn main() -> std::io::Result<()> {
-    let mut dev = Device::open(Keyboard, "hidg0")?; // open device
+    let mut device = Device::<Keyboard>::open("hidg0")?; // open device
+
+    // Create input report
+    let mut input = Keyboard.input();
 
     // Press left ctrl modifier
-    dev.update(StateChange::press(Key::LeftCtrl))?;
+    input.press_key(Key::LeftCtrl);
 
     // Press key 'A'
-    dev.update(StateChange::press(Key::A))?;
+    input.press_key(Key::A);
+
+    // Send input report
+    device.input(&input)?;
 
     // Get pressed keys
-    println!("Keys: {:?}", dev.input().pressed().collect::<Vec<Key>>());
+    println!("Keys: {:?}", input.pressed().collect::<Vec<Key>>());
 
     // Release left ctrl modifier
-    dev.update(StateChange::release(Key::LeftCtrl))?;
+    input.release_key(Key::LeftCtrl);
 
     // Release key 'A'
-    dev.update(StateChange::release(Key::A))?;
+    input.release_key(Key::A);
+
+    // Send input report
+    device.input(&input)?;
+
+    // Create output report
+    let mut output = Keyboard.output();
+
+    // Receive output report
+    device.output(&mut output)?;
+
+    // Print lit LEDs
+    println!("LEDs: {:?}", output.lit().collect::<Vec<Led>>());
 
     Ok(())
 }
@@ -58,25 +76,34 @@ fn main() -> std::io::Result<()> {
 Mouse input simulation:
 
 ```no_run
-use hidg::{Device, Mouse, StateChange, ValueChange, Button};
+use hidg::{Button, Class, Device, Mouse, StateChange, ValueChange};
 
 fn main() -> std::io::Result<()> {
-    let mut dev = Device::open(Mouse, "hidg0")?; // open device
+    let mut device = Device::<Mouse>::open("hidg0")?; // open device
+
+    // Create input report
+    let mut input = Mouse.input();
 
     // Press primary button
-    dev.update(StateChange::press(Button::Primary))?;
+    input.press_button(Button::Primary);
 
     // Update pointer coordinates
-    dev.update(ValueChange::absolute((150, 50)))?;
+    input.change_pointer((150, 50), false);
+
+    // Send input report
+    device.input(&input)?;
 
     // Move pointer relatively
-    dev.update(ValueChange::relative((70, -30)))?;
+    input.change_pointer((70, -30), true);
 
     // Get pressed buttons
-    println!("Buttons: {:?}", dev.input().pressed().collect::<Vec<Button>>());
+    println!("Buttons: {:?}", input.pressed().collect::<Vec<Button>>());
 
     // Release primary button
-    dev.update(StateChange::release(Button::Primary))?;
+    input.release_button(Button::Primary);
+
+    // Send input report
+    device.input(&input)?;
 
     Ok(())
 }
