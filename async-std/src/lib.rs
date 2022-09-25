@@ -7,10 +7,15 @@ use hidg_core::{check_read, check_write, open};
 pub use hidg_core::{Class, Error, Result, StateChange, ValueChange};
 
 #[cfg(feature = "keyboard")]
-pub use hidg_core::{Key, Keyboard, KeyboardInput, KeyboardOutput, Led, Leds, Modifiers};
+pub use hidg_core::{
+    Key, KeyStateChanges, Keyboard, KeyboardInput, KeyboardOutput, Led, LedStateChanges, Leds,
+    Modifiers,
+};
 
 #[cfg(feature = "mouse")]
-pub use hidg_core::{Button, Buttons, Mouse, MouseInput, MouseOutput};
+pub use hidg_core::{
+    Button, Buttons, Mouse, MouseInput, MouseInputChange, MouseInputChanges, MouseOutput,
+};
 
 use core::marker::PhantomData;
 use std::{

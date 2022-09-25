@@ -21,10 +21,15 @@ mod keyboard;
 mod mouse;
 
 #[cfg(feature = "keyboard")]
-pub use keyboard::{Key, Keyboard, KeyboardInput, KeyboardOutput, Led, Leds, Modifiers};
+pub use keyboard::{
+    Key, KeyStateChanges, Keyboard, KeyboardInput, KeyboardOutput, Led, LedStateChanges, Leds,
+    Modifiers,
+};
 
 #[cfg(feature = "mouse")]
-pub use mouse::{Button, Buttons, Mouse, MouseInput, MouseOutput};
+pub use mouse::{
+    Button, Buttons, Mouse, MouseInput, MouseInputChange, MouseInputChanges, MouseOutput,
+};
 
 use std::{
     fs::{File, OpenOptions},
@@ -48,7 +53,7 @@ impl std::fmt::Display for Unknown {
 }
 
 /// Key/button/LED state change event
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct StateChange<T> {
     data: T,
@@ -83,7 +88,7 @@ impl<T> StateChange<T> {
 }
 
 /// Pointer/cursor position change event
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct ValueChange<T> {
     data: T,

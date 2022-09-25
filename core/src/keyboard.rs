@@ -619,7 +619,6 @@ impl KeyboardInput {
     pub fn pressed<'i>(&'i self) -> AllPressedKeys<'i> {
         AllPressedKeys {
             report: self,
-            modifier: true,
             element: 0,
         }
     }
@@ -652,6 +651,16 @@ impl KeyboardInput {
     /// Get slice of pressed keys excepting modifiers
     pub fn pressed_keys(&self) -> &[Key] {
         &self.keycodes[0..self.count_pressed_keys()]
+    }
+
+    /// Check is key pressed excepting modifiers
+    pub fn is_pressed_key(&self, key: Key) -> bool {
+        for index in 0..6 {
+            if self.keycodes[index] == key {
+                return true;
+            }
+        }
+        false
     }
 
     /// Press or release modifiers only
@@ -731,6 +740,77 @@ impl KeyboardInput {
     pub fn release_key(&mut self, key: Key) {
         self.change_key(key, false);
     }
+
+    /// Get key state changes between two reports
+    ///
+    /// Difference of two reports
+    pub fn diff<'i>(&'i self, other: &'i Self) -> KeyStateChanges<'i> {
+        KeyStateChanges {
+            new: self,
+            old: other,
+            element: 0,
+        }
+    }
+}
+
+impl<'i> core::ops::Sub<&'i KeyboardInput> for &'i KeyboardInput {
+    type Output = KeyStateChanges<'i>;
+
+    fn sub(self, other: Self) -> Self::Output {
+        self.diff(other)
+    }
+}
+
+/// Changes between keyboard input reports
+pub struct KeyStateChanges<'i> {
+    new: &'i KeyboardInput,
+    old: &'i KeyboardInput,
+    element: u8,
+}
+
+impl<'i> Iterator for KeyStateChanges<'i> {
+    type Item = StateChange<Key>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            if self.element < 8 {
+                // find changed modifies
+                let modifier = Modifiers::from(1 << self.element);
+                self.element += 1;
+                if Modifiers::none() != ((self.new.modifier ^ self.old.modifier) & modifier) {
+                    let key = Key::from(modifier);
+                    let old_key = Key::from(self.old.modifier & modifier);
+                    return Some(StateChange::new(key, matches!(old_key, Key::None)));
+                }
+            } else if self.element < 8 + 6 {
+                // find released keys
+                let index = (self.element - 8) as usize;
+                let key = self.old.keycodes[index];
+                if matches!(key, Key::None) {
+                    self.element = 8 + 6;
+                } else {
+                    self.element += 1;
+                    if !self.new.is_pressed_key(key) {
+                        return Some(StateChange::new(key, false));
+                    }
+                }
+            } else if self.element < 8 + 6 + 6 {
+                // find pressed keys
+                let index = (self.element - (8 + 6)) as usize;
+                let key = self.new.keycodes[index];
+                if matches!(key, Key::None) {
+                    self.element = 8 + 6 + 6;
+                } else {
+                    self.element += 1;
+                    if !self.old.is_pressed_key(key) {
+                        return Some(StateChange::new(key, true));
+                    }
+                }
+            } else {
+                return None;
+            }
+        }
+    }
 }
 
 impl Extend<StateChange<Modifiers>> for KeyboardInput {
@@ -769,7 +849,6 @@ impl Extend<KeyboardInput> for KeyboardInput {
 /// An iterator over all pressed keys including modifiers
 pub struct AllPressedKeys<'i> {
     report: &'i KeyboardInput,
-    modifier: bool,
     element: u8,
 }
 
@@ -778,19 +857,15 @@ impl<'i> Iterator for AllPressedKeys<'i> {
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
-            if self.modifier {
+            if self.element < 8 {
                 let modifier = Modifiers::from(1 << self.element);
                 self.element += 1;
-                if self.element >= 8 {
-                    self.modifier = false;
-                    self.element = 0;
-                }
                 let key = Key::from(self.report.modifier & modifier);
                 if !matches!(key, Key::None) {
                     return Some(key);
                 }
-            } else if self.element < 6 {
-                let key = self.report.keycodes[self.element as usize];
+            } else if self.element < 8 + 6 {
+                let key = self.report.keycodes[(self.element - 8) as usize];
                 self.element += 1;
                 if !matches!(key, Key::None) {
                     return Some(key);
@@ -865,6 +940,53 @@ impl KeyboardOutput {
     /// Turn LED off
     pub fn off_led(&mut self, led: Led) {
         self.change_led(led, false);
+    }
+
+    /// Get LED state changes between two reports
+    ///
+    /// Difference of two reports
+    pub fn diff<'i>(&'i self, other: &'i Self) -> LedStateChanges<'i> {
+        LedStateChanges {
+            new: self,
+            old: other,
+            element: 0,
+        }
+    }
+}
+
+impl<'i> core::ops::Sub<&'i KeyboardOutput> for &'i KeyboardOutput {
+    type Output = LedStateChanges<'i>;
+
+    fn sub(self, other: Self) -> Self::Output {
+        self.diff(other)
+    }
+}
+
+/// Changes between keyboard output reports
+pub struct LedStateChanges<'i> {
+    new: &'i KeyboardOutput,
+    old: &'i KeyboardOutput,
+    element: u8,
+}
+
+impl<'i> Iterator for LedStateChanges<'i> {
+    type Item = StateChange<Led>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            if self.element < 8 {
+                // find changed leds
+                let leds = Leds::from(1 << self.element);
+                self.element += 1;
+                if Leds::none() != ((self.new.leds ^ self.old.leds) & leds) {
+                    let led = Led::from(leds);
+                    let old_led = Led::from(self.old.leds & leds);
+                    return Some(StateChange::new(led, matches!(old_led, Led::None)));
+                }
+            } else {
+                return None;
+            }
+        }
     }
 }
 
@@ -1035,5 +1157,58 @@ mod test {
         assert_eq!(iter.next(), Some(Led::ScrollLock));
         assert_eq!(iter.next(), Some(Led::Compose));
         assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn keyboard_input_diff() {
+        let mut old = KeyboardInput::default();
+        old.press_key(Key::A);
+        old.press_key(Key::LeftCtrl);
+        old.press_key(Key::LeftAlt);
+        old.press_key(Key::Enter);
+        old.press_key(Key::B);
+        assert_eq!(old.count_pressed_keys(), 3);
+
+        let mut new = KeyboardInput::default();
+        new.press_key(Key::RightMeta);
+        new.press_key(Key::LeftAlt);
+        new.press_key(Key::B);
+        new.press_key(Key::C);
+        new.press_key(Key::D);
+        new.press_key(Key::Tab);
+        new.press_key(Key::Esc);
+        assert_eq!(new.count_pressed_keys(), 5);
+
+        let mut changes = &new - &old;
+        assert_eq!(changes.next(), Some(StateChange::new(Key::LeftCtrl, false)));
+        assert_eq!(changes.next(), Some(StateChange::new(Key::RightMeta, true)));
+        assert_eq!(changes.next(), Some(StateChange::new(Key::A, false)));
+        assert_eq!(changes.next(), Some(StateChange::new(Key::Enter, false)));
+        assert_eq!(changes.next(), Some(StateChange::new(Key::C, true)));
+        assert_eq!(changes.next(), Some(StateChange::new(Key::D, true)));
+        assert_eq!(changes.next(), Some(StateChange::new(Key::Tab, true)));
+        assert_eq!(changes.next(), Some(StateChange::new(Key::Esc, true)));
+        assert_eq!(changes.next(), None);
+    }
+
+    #[test]
+    fn keyboard_output_diff() {
+        let mut old = KeyboardOutput::default();
+        old.on_led(Led::CapsLock);
+        old.on_led(Led::Kana);
+
+        let mut new = KeyboardOutput::default();
+        new.on_led(Led::ScrollLock);
+        new.on_led(Led::NumLock);
+        new.on_led(Led::Kana);
+
+        let mut changes = &new - &old;
+        assert_eq!(changes.next(), Some(StateChange::new(Led::NumLock, true)));
+        assert_eq!(changes.next(), Some(StateChange::new(Led::CapsLock, false)));
+        assert_eq!(
+            changes.next(),
+            Some(StateChange::new(Led::ScrollLock, true))
+        );
+        assert_eq!(changes.next(), None);
     }
 }

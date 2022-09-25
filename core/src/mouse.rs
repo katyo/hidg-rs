@@ -241,6 +241,100 @@ impl MouseInput {
             self.wheel = wheel;
         }
     }
+
+    /// Get changes between two reports
+    ///
+    /// Difference of two reports
+    pub fn diff<'i>(
+        &'i self,
+        other: &'i Self,
+        relative_pointer: bool,
+        relative_wheel: bool,
+    ) -> MouseInputChanges<'i> {
+        MouseInputChanges {
+            new: self,
+            old: other,
+            element: 0,
+            relative_pointer,
+            relative_wheel,
+        }
+    }
+}
+
+impl<'i> core::ops::Sub<&'i MouseInput> for &'i MouseInput {
+    type Output = MouseInputChanges<'i>;
+
+    fn sub(self, other: Self) -> Self::Output {
+        self.diff(other, false, false)
+    }
+}
+
+/// Change between mouse input reports
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum MouseInputChange {
+    /// Button state change
+    Button(StateChange<Button>),
+    /// Pointer coordinates change
+    Pointer((i16, i16)),
+    /// Wheel value change
+    Wheel(i8),
+}
+
+/// Changes between mouse input reports
+pub struct MouseInputChanges<'i> {
+    new: &'i MouseInput,
+    old: &'i MouseInput,
+    element: u8,
+    relative_pointer: bool,
+    relative_wheel: bool,
+}
+
+impl<'i> Iterator for MouseInputChanges<'i> {
+    type Item = MouseInputChange;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            if self.element < 8 {
+                // find changed buttons
+                let buttons = Buttons::from(1 << self.element);
+                self.element += 1;
+                if Buttons::none() != ((self.new.button ^ self.old.button) & buttons) {
+                    let button = Button::from(buttons);
+                    let old_button = Button::from(self.old.button & buttons);
+                    return Some(MouseInputChange::Button(StateChange::new(
+                        button,
+                        matches!(old_button, Button::None),
+                    )));
+                }
+            } else if self.element < 9 {
+                // changed pointer coords
+                self.element += 1;
+                if self.new.pointer.0 != self.old.pointer.0
+                    || self.new.pointer.1 != self.old.pointer.1
+                {
+                    return Some(MouseInputChange::Pointer(if self.relative_pointer {
+                        (
+                            self.new.pointer.0 - self.old.pointer.0,
+                            self.new.pointer.1 - self.old.pointer.1,
+                        )
+                    } else {
+                        (self.new.pointer.0, self.new.pointer.1)
+                    }));
+                }
+            } else if self.element < 10 {
+                self.element += 1;
+                if self.new.wheel != self.old.wheel {
+                    return Some(MouseInputChange::Wheel(if self.relative_wheel {
+                        self.new.wheel - self.old.wheel
+                    } else {
+                        self.new.wheel
+                    }));
+                }
+            } else {
+                return None;
+            }
+        }
+    }
 }
 
 impl Extend<StateChange<Buttons>> for MouseInput {
@@ -364,5 +458,54 @@ mod test {
         assert_eq!(Buttons::from(Button::Primary), Buttons::Primary);
         assert_eq!(Buttons::from(Button::Secondary), Buttons::Secondary);
         assert_eq!(Buttons::from(Button::Tertiary), Buttons::Tertiary);
+    }
+
+    #[test]
+    fn mouse_input_diff() {
+        let mut old = MouseInput::default();
+
+        old.press_button(Button::Primary);
+        old.press_button(Button::Tertiary);
+        old.set_pointer((120, 450));
+        old.set_wheel(7);
+
+        let mut new = MouseInput::default();
+
+        new.press_button(Button::Tertiary);
+        new.press_button(Button::Secondary);
+        new.set_pointer((120, 150));
+        new.set_wheel(-1);
+
+        let mut changes = &new - &old;
+
+        assert_eq!(
+            changes.next(),
+            Some(MouseInputChange::Button(StateChange::release(
+                Button::Primary
+            )))
+        );
+        assert_eq!(
+            changes.next(),
+            Some(MouseInputChange::Button(StateChange::press(
+                Button::Secondary
+            )))
+        );
+        assert_eq!(changes.next(), Some(MouseInputChange::Pointer((120, 150))));
+        assert_eq!(changes.next(), Some(MouseInputChange::Wheel(-1)));
+        assert_eq!(changes.next(), None);
+
+        new.release_button(Button::Secondary);
+        new.set_wheel(7);
+
+        let mut changes = new.diff(&old, true, true);
+
+        assert_eq!(
+            changes.next(),
+            Some(MouseInputChange::Button(StateChange::release(
+                Button::Primary
+            )))
+        );
+        assert_eq!(changes.next(), Some(MouseInputChange::Pointer((0, -300))));
+        assert_eq!(changes.next(), None);
     }
 }
