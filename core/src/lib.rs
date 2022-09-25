@@ -71,9 +71,32 @@ impl<T> StateChange<T> {
         Self::new(data, true)
     }
 
+    /// Create new on event
+    pub fn on(data: T) -> Self {
+        Self::new(data, true)
+    }
+
     /// Create new release event
     pub fn release(data: T) -> Self {
         Self::new(data, false)
+    }
+
+    /// Create new off event
+    pub fn off(data: T) -> Self {
+        Self::new(data, false)
+    }
+
+    /// Get data
+    pub fn data(&self) -> T
+    where
+        T: Copy,
+    {
+        self.data
+    }
+
+    /// Get state
+    pub fn state(&self) -> bool {
+        self.state
     }
 
     /// Is key/button press event
@@ -81,9 +104,31 @@ impl<T> StateChange<T> {
         self.state
     }
 
+    /// Is LED on event
+    pub fn is_on(&self) -> bool {
+        self.state
+    }
+
     /// Is key/button release event
     pub fn is_release(&self) -> bool {
         !self.state
+    }
+
+    /// Is LED off event
+    pub fn is_off(&self) -> bool {
+        !self.state
+    }
+}
+
+impl<T> From<(T, bool)> for StateChange<T> {
+    fn from((data, state): (T, bool)) -> Self {
+        Self { data, state }
+    }
+}
+
+impl<T> From<StateChange<T>> for (T, bool) {
+    fn from(StateChange { data, state }: StateChange<T>) -> Self {
+        (data, state)
     }
 }
 
@@ -100,6 +145,14 @@ impl<T> ValueChange<T> {
     /// Create new value change event
     pub fn new(data: T, relative: bool) -> Self {
         Self { data, relative }
+    }
+
+    /// Get underlying data
+    pub fn data(&self) -> T
+    where
+        T: Copy,
+    {
+        self.data
     }
 
     /// Create new absolute value change event
@@ -120,6 +173,18 @@ impl<T> ValueChange<T> {
     /// Is value change absolute
     pub fn is_absolute(&self) -> bool {
         !self.relative
+    }
+}
+
+impl<T> From<(T, bool)> for ValueChange<T> {
+    fn from((data, relative): (T, bool)) -> Self {
+        Self { data, relative }
+    }
+}
+
+impl<T> From<ValueChange<T>> for (T, bool) {
+    fn from(ValueChange { data, relative }: ValueChange<T>) -> Self {
+        (data, relative)
     }
 }
 
