@@ -478,7 +478,7 @@ impl From<Modifiers> for Key {
 impl From<Key> for Modifiers {
     fn from(key: Key) -> Self {
         let code = key as u8;
-        Modifiers::from(if code >= 0xe0 && code <= 0xe7 {
+        Modifiers::from(if (0xe0..=0xe7).contains(&code) {
             1 << (code - 0xe0)
         } else {
             0
@@ -524,7 +524,7 @@ code_enum! {
 impl Led {
     /// Converts from raw value safely
     pub fn safe_from(raw: u8) -> Option<Self> {
-        if raw >= 0x01 && raw <= 0x05 {
+        if (0x01..=0x05).contains(&raw) {
             Some(From::from(raw))
         } else {
             None
@@ -616,7 +616,7 @@ impl KeyboardInput {
     /// Get iterator over pressed keys
     ///
     /// Modifiers also returned as key codes before ordinary keys
-    pub fn pressed<'i>(&'i self) -> AllPressedKeys<'i> {
+    pub fn pressed(&self) -> AllPressedKeys<'_> {
         AllPressedKeys {
             report: self,
             element: 0,
@@ -645,7 +645,7 @@ impl KeyboardInput {
                 return i;
             }
         }
-        return 6;
+        6
     }
 
     /// Get slice of pressed keys excepting modifiers

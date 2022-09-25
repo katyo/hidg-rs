@@ -163,7 +163,7 @@ impl MouseInput {
     }
 
     /// Get iterator over pressed buttons
-    pub fn pressed<'i>(&'i self) -> PressedButtons<'i> {
+    pub fn pressed(&self) -> PressedButtons<'_> {
         PressedButtons {
             report: self,
             element: 0,

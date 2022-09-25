@@ -1,3 +1,4 @@
+#[allow(unused_macros)]
 macro_rules! code_enum {
     ($($(#[$($type_meta:meta)*])* $type:ident: $repr_type:ty { $($(#[$($var_meta:meta)*])* $var:ident = $val:literal => $str:literal $(| $strs:literal)*,)* })*) => {
         $(
@@ -86,6 +87,7 @@ macro_rules! code_enum {
     };
 }
 
+#[allow(unused_macros)]
 macro_rules! serde_num {
     ($($type:ty: $rtype:tt, $expect:literal;)*) => {
         $(
@@ -171,6 +173,7 @@ macro_rules! serde_num {
     }
 }
 
+#[allow(unused_macros)]
 macro_rules! raw_ref {
     ($($type:ty;)*) => {
         $(
