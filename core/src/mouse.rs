@@ -242,6 +242,17 @@ impl MouseInput {
         }
     }
 
+    /// Change mouse input
+    pub fn change(&mut self, change: &MouseInputChange) {
+        match change {
+            MouseInputChange::Button(change) => self.change_button(**change, change.state()),
+            MouseInputChange::Pointer(change) => {
+                self.change_pointer(**change, change.is_relative())
+            }
+            MouseInputChange::Wheel(change) => self.change_wheel(**change, change.is_relative()),
+        }
+    }
+
     /// Get changes between two reports
     ///
     /// Difference of two reports
@@ -275,9 +286,9 @@ pub enum MouseInputChange {
     /// Button state change
     Button(StateChange<Button>),
     /// Pointer coordinates change
-    Pointer((i16, i16)),
+    Pointer(ValueChange<(i16, i16)>),
     /// Wheel value change
-    Wheel(i8),
+    Wheel(ValueChange<i8>),
 }
 
 /// Changes between mouse input reports
@@ -312,23 +323,29 @@ impl<'i> Iterator for MouseInputChanges<'i> {
                 if self.new.pointer.0 != self.old.pointer.0
                     || self.new.pointer.1 != self.old.pointer.1
                 {
-                    return Some(MouseInputChange::Pointer(if self.relative_pointer {
-                        (
-                            self.new.pointer.0 - self.old.pointer.0,
-                            self.new.pointer.1 - self.old.pointer.1,
-                        )
-                    } else {
-                        (self.new.pointer.0, self.new.pointer.1)
-                    }));
+                    return Some(MouseInputChange::Pointer(ValueChange::new(
+                        if self.relative_pointer {
+                            (
+                                self.new.pointer.0 - self.old.pointer.0,
+                                self.new.pointer.1 - self.old.pointer.1,
+                            )
+                        } else {
+                            (self.new.pointer.0, self.new.pointer.1)
+                        },
+                        self.relative_pointer,
+                    )));
                 }
             } else if self.element < 10 {
                 self.element += 1;
                 if self.new.wheel != self.old.wheel {
-                    return Some(MouseInputChange::Wheel(if self.relative_wheel {
-                        self.new.wheel - self.old.wheel
-                    } else {
-                        self.new.wheel
-                    }));
+                    return Some(MouseInputChange::Wheel(ValueChange::new(
+                        if self.relative_wheel {
+                            self.new.wheel - self.old.wheel
+                        } else {
+                            self.new.wheel
+                        },
+                        self.relative_wheel,
+                    )));
                 }
             } else {
                 return None;
@@ -490,8 +507,17 @@ mod test {
                 Button::Secondary
             )))
         );
-        assert_eq!(changes.next(), Some(MouseInputChange::Pointer((120, 150))));
-        assert_eq!(changes.next(), Some(MouseInputChange::Wheel(-1)));
+        assert_eq!(
+            changes.next(),
+            Some(MouseInputChange::Pointer(ValueChange::new(
+                (120, 150),
+                false
+            )))
+        );
+        assert_eq!(
+            changes.next(),
+            Some(MouseInputChange::Wheel(ValueChange::new(-1, false)))
+        );
         assert_eq!(changes.next(), None);
 
         new.release_button(Button::Secondary);
@@ -505,7 +531,10 @@ mod test {
                 Button::Primary
             )))
         );
-        assert_eq!(changes.next(), Some(MouseInputChange::Pointer((0, -300))));
+        assert_eq!(
+            changes.next(),
+            Some(MouseInputChange::Pointer(ValueChange::new((0, -300), true)))
+        );
         assert_eq!(changes.next(), None);
     }
 }
