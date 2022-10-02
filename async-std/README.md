@@ -31,7 +31,7 @@ Since all functionality is dependent on Linux function calls, this crate only co
 
 Keyboard input simulation:
 
-```no_run
+```rust,no_run
 use async_std_hidg::{Class, Device, Keyboard, Key, Led, StateChange};
 
 #[async_std::main]
@@ -77,7 +77,7 @@ async fn main() -> std::io::Result<()> {
 
 Mouse input simulation:
 
-```no_run
+```rust,no_run
 use async_std_hidg::{Button, Class, Device, Mouse, StateChange, ValueChange};
 
 #[async_std::main]

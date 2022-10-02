@@ -30,7 +30,7 @@ Since all functionality is dependent on Linux function calls, this crate only co
 
 Keyboard input simulation:
 
-```no_run
+```rust,no_run
 use hidg::{Class, Device, Keyboard, Key, Led, StateChange};
 
 fn main() -> std::io::Result<()> {
@@ -75,7 +75,7 @@ fn main() -> std::io::Result<()> {
 
 Mouse input simulation:
 
-```no_run
+```rust,no_run
 use hidg::{Button, Class, Device, Mouse, StateChange, ValueChange};
 
 fn main() -> std::io::Result<()> {
