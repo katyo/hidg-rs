@@ -1,5 +1,5 @@
 #[derive(clap::Parser)]
-#[clap(
+#[command(
     name = "hidg",
     version,
     about,
@@ -24,14 +24,14 @@ pub enum Class {
     Mouse,
 }
 
-#[derive(clap::Subcommand)]
+#[derive(clap::Parser)]
 pub enum Cmd {
     /// Read-write reports in interactive mode
     Repl {
-        #[clap(short, long, arg_enum, default_value = "keyboard")]
+        #[arg(short, long, value_enum, default_value = "keyboard")]
         class: Class,
 
-        #[clap(value_parser, default_value = "hidg0")]
+        #[arg(value_parser, default_value = "hidg0")]
         path: std::path::PathBuf,
     },
 }

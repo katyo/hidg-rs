@@ -24,7 +24,7 @@ features = ["fromstr", "display", "phf", "keyboard", "mouse"]
 version = "1"
 
 [dependencies.clap]
-version = "3"
+version = "4"
 features = ["std", "derive"]
 
 [dependencies.rustyline]
