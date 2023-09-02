@@ -259,7 +259,7 @@ code_enum! {
         /// Keypad +
         KeyPadPlus = 0x57 => "keypad-plus",
         /// Keypad ENTER
-        KyePadEnter = 0x58 => "keypad-enter",
+        KeyPadEnter = 0x58 => "keypad-enter",
         /// Keypad 1 and End
         KeyPad1 = 0x59 => "keypad-1",
         /// Keypad 2 and Down Arrow
