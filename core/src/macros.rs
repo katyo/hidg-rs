@@ -37,7 +37,7 @@ macro_rules! code_enum {
                     };
 
                     #[cfg(all(feature = "phf", feature = "unicase"))]
-                    static MAP: phf::Map<unicase_::UniCase<&'static str>, $type> = phf::phf_map! {
+                    static MAP: phf::Map<unicase::UniCase<&'static str>, $type> = phf::phf_map! {
                         $(
                             UniCase::ascii($str) => $type::$var,
                             $(UniCase::ascii($strs) => $type::$var,)*
@@ -45,7 +45,7 @@ macro_rules! code_enum {
                     };
 
                     #[cfg(all(feature = "phf", feature = "unicase"))]
-                    let s = &unicase_::UniCase::ascii(s);
+                    let s = &unicase::UniCase::ascii(s);
 
                     #[cfg(feature = "phf")]
                     {

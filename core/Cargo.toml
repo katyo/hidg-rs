@@ -1,7 +1,7 @@
 [package]
 name = "hidg-core"
 description = "Linux USB HID Gadget emulation"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["K. <kayo@illumium.org>"]
 license = "MIT"
 readme = "README.md"
@@ -9,36 +9,30 @@ categories = ["os", "os::linux-apis"]
 keywords = ["USB", "Gadget", "HID", "Linux", "Input"]
 edition = "2021"
 
-[dependencies.static_assertions]
-version = "1"
-
-[dependencies.bitmask-enum]
-version = "2"
+[dependencies]
+static_assertions.workspace = true
+bitmask-enum.workspace = true
 
 [dependencies.serde]
-version = "1"
-default-features = false
-features = ["std", "derive"]
+workspace = true
 optional = true
 
 [dependencies.either]
-version = "1"
+workspace = true
 optional = true
 
 [dependencies.phf]
-version = "0.11"
-features = ["macros"]
+workspace = true
 optional = true
 
-[dependencies.unicase_]
-package = "unicase"
-version = "2"
-optional = true
+#[dependencies.unicase]
+#workspace = true
+#optional = true
 
 [features]
 default = ["fromstr", "display", "phf", "keyboard", "mouse"]
 fromstr = []
 display = []
-#unicase = ["unicase_", "phf/unicase"]
+#unicase = ["dep:unicase", "phf?/unicase"]
 keyboard = []
 mouse = []

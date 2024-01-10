@@ -1,7 +1,7 @@
 [package]
 name = "async-std-hidg"
 description = "Linux USB HID Gadget emulation for async-std runtime"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["K. <kayo@illumium.org>"]
 license = "MIT"
 readme = "README.md"
@@ -10,18 +10,17 @@ keywords = ["USB", "Gadget", "HID", "Linux", "Input"]
 edition = "2021"
 
 [dependencies.hidg-core]
-path = "../core"
-version = "0.1.1"
+workspace = true
 default-features = false
 
 [dependencies.async-io]
-version = "1"
+workspace = true
 
 [dependencies.async-std]
-version = "1"
+workspace = true
 
 [dev-dependencies.async-std]
-version = "1"
+workspace = true
 features = ["attributes"]
 
 [features]
