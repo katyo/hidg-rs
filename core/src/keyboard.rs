@@ -1,4 +1,4 @@
-use bitmask_enum::bitmask;
+use bitflags::bitflags;
 use core::mem::{size_of, transmute};
 use static_assertions::const_assert_eq;
 
@@ -36,39 +36,47 @@ impl core::fmt::Display for Keyboard {
     }
 }
 
-/// Modifier mask
-#[bitmask(u8)]
-pub enum Modifiers {
-    /// Left Control
-    LeftCtrl = 0x01,
-    /// Left Shift
-    LeftShift = 0x02,
-    /// Left Alt
-    LeftAlt = 0x04,
-    /// Left Meta
-    LeftMeta = 0x08,
-    /// Right Control
-    RightCtrl = 0x10,
-    /// Right Shift
-    RightShift = 0x20,
-    /// Right Alt
-    RightAlt = 0x40,
-    /// Right Meta
-    RightMeta = 0x80,
+bitflags! {
+    /// Modifier mask
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    pub struct Modifiers: u8 {
+        /// Left Control
+        const LeftCtrl = 0x01;
+        /// Left Shift
+        const LeftShift = 0x02;
+        /// Left Alt
+        const LeftAlt = 0x04;
+        /// Left Meta
+        const LeftMeta = 0x08;
+        /// Right Control
+        const RightCtrl = 0x10;
+        /// Right Shift
+        const RightShift = 0x20;
+        /// Right Alt
+        const RightAlt = 0x40;
+        /// Right Meta
+        const RightMeta = 0x80;
+    }
 }
 
 const_assert_eq!(size_of::<Modifiers>(), 1);
 
 impl Default for Modifiers {
     fn default() -> Self {
-        Self::none()
+        Self::empty()
     }
 }
 
 impl Modifiers {
     /// Converts from raw value safely
     pub fn safe_from(raw: u8) -> Option<Self> {
-        Some(Self::from(raw))
+        Self::from_bits(raw)
+    }
+}
+
+impl From<Modifiers> for u8 {
+    fn from(mods: Modifiers) -> Self {
+        mods.bits()
     }
 }
 
@@ -466,7 +474,7 @@ code_enum! {
 
 impl From<Modifiers> for Key {
     fn from(mods: Modifiers) -> Self {
-        let off = mods.bits.trailing_zeros() as u8;
+        let off = mods.bits().trailing_zeros() as u8;
         if off < 8 {
             Key::from(0xe0u8 + off)
         } else {
@@ -478,7 +486,7 @@ impl From<Modifiers> for Key {
 impl From<Key> for Modifiers {
     fn from(key: Key) -> Self {
         let code = key as u8;
-        Modifiers::from(if (0xe0..=0xe7).contains(&code) {
+        Modifiers::from_bits_retain(if (0xe0..=0xe7).contains(&code) {
             1 << (code - 0xe0)
         } else {
             0
@@ -532,26 +540,28 @@ impl Led {
     }
 }
 
-/// LED mask
-#[bitmask(u8)]
-pub enum Leds {
-    /// Num lock
-    NumLock = 0x01,
-    /// Caps lock
-    CapsLock = 0x02,
-    /// Scroll lock
-    ScrollLock = 0x04,
-    /// Compose LED
-    Compose = 0x08,
-    /// Kana LED
-    Kana = 0x10,
+bitflags! {
+    /// LED mask
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    pub struct Leds: u8 {
+        /// Num lock
+        const NumLock = 0x01;
+        /// Caps lock
+        const CapsLock = 0x02;
+        /// Scroll lock
+        const ScrollLock = 0x04;
+        /// Compose LED
+        const Compose = 0x08;
+        /// Kana LED
+        const Kana = 0x10;
+    }
 }
 
 const_assert_eq!(size_of::<Leds>(), 1);
 
 impl Default for Leds {
     fn default() -> Self {
-        Self::none()
+        Self::empty()
     }
 }
 
@@ -559,16 +569,22 @@ impl Leds {
     /// Convert from raw value safely
     pub fn safe_from(raw: u8) -> Option<Self> {
         if raw & 0xe0 == 0 {
-            Some(Self::from(raw))
+            Self::from_bits(raw)
         } else {
             None
         }
     }
 }
 
+impl From<Leds> for u8 {
+    fn from(leds: Leds) -> Self {
+        leds.bits()
+    }
+}
+
 impl From<Led> for Leds {
     fn from(code: Led) -> Self {
-        Self::from(if matches!(code, Led::None) {
+        Self::from_bits_retain(if matches!(code, Led::None) {
             0u8
         } else {
             1u8 << (code as u8 - Led::NumLock as u8)
@@ -578,7 +594,7 @@ impl From<Led> for Leds {
 
 impl From<Leds> for Led {
     fn from(leds: Leds) -> Self {
-        let off = leds.bits.trailing_zeros() as u8;
+        let off = leds.bits().trailing_zeros() as u8;
         if off < 8 {
             Led::from(Led::NumLock as u8 + off)
         } else {
@@ -635,7 +651,7 @@ impl KeyboardInput {
 
     /// Get number of pressed modifiers
     pub fn count_pressed_mods(&self) -> usize {
-        self.modifier.bits.count_ones() as _
+        self.modifier.bits().count_ones() as _
     }
 
     /// Get number of pressed keys excepting modifiers
@@ -688,7 +704,7 @@ impl KeyboardInput {
             return;
         }
         let modifier = Modifiers::from(key);
-        if modifier.bits == 0 {
+        if modifier.bits() == 0 {
             // ordinary key
             let mut len = self.count_pressed_keys();
             if state {
@@ -775,9 +791,9 @@ impl<'i> Iterator for KeyStateChanges<'i> {
         loop {
             if self.element < 8 {
                 // find changed modifies
-                let modifier = Modifiers::from(1 << self.element);
+                let modifier = Modifiers::from_bits_retain(1 << self.element);
                 self.element += 1;
-                if Modifiers::none() != ((self.new.modifier ^ self.old.modifier) & modifier) {
+                if Modifiers::empty() != ((self.new.modifier ^ self.old.modifier) & modifier) {
                     let key = Key::from(modifier);
                     let old_key = Key::from(self.old.modifier & modifier);
                     return Some(StateChange::new(key, matches!(old_key, Key::None)));
@@ -858,7 +874,7 @@ impl<'i> Iterator for AllPressedKeys<'i> {
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             if self.element < 8 {
-                let modifier = Modifiers::from(1 << self.element);
+                let modifier = Modifiers::from_bits_retain(1 << self.element);
                 self.element += 1;
                 let key = Key::from(self.report.modifier & modifier);
                 if !matches!(key, Key::None) {
@@ -897,7 +913,7 @@ impl KeyboardOutput {
 
     /// Get number of lit LEDs
     pub fn count_lit(&self) -> usize {
-        self.leds.bits.count_ones() as _
+        self.leds.bits().count_ones() as _
     }
 
     /// Get iterator over lit LEDs
@@ -976,9 +992,9 @@ impl<'i> Iterator for LedStateChanges<'i> {
         loop {
             if self.element < 8 {
                 // find changed leds
-                let leds = Leds::from(1 << self.element);
+                let leds = Leds::from_bits_retain(1 << self.element);
                 self.element += 1;
-                if Leds::none() != ((self.new.leds ^ self.old.leds) & leds) {
+                if Leds::empty() != ((self.new.leds ^ self.old.leds) & leds) {
                     let led = Led::from(leds);
                     let old_led = Led::from(self.old.leds & leds);
                     return Some(StateChange::new(led, matches!(old_led, Led::None)));
@@ -1034,7 +1050,7 @@ impl<'i> Iterator for LitLeds<'i> {
 
     fn next(&mut self) -> Option<Self::Item> {
         while self.element < 8 {
-            let led = Leds::from(1u8 << self.element);
+            let led = Leds::from_bits_retain(1u8 << self.element);
             self.element += 1;
             if self.report.leds.contains(led) {
                 return Some(led.into());
@@ -1059,7 +1075,7 @@ mod test {
 
     #[test]
     fn mod_mask_to_key_code() {
-        assert_eq!(Key::from(Modifiers::from(0)), Key::None);
+        assert_eq!(Key::from(Modifiers::empty()), Key::None);
         assert_eq!(Key::from(Modifiers::LeftCtrl), Key::LeftCtrl);
         assert_eq!(Key::from(Modifiers::RightAlt), Key::RightAlt);
         assert_eq!(Key::from(Modifiers::RightMeta), Key::RightMeta);
@@ -1140,7 +1156,7 @@ mod test {
         assert_eq!(report.count_lit(), 2);
 
         report.off_led(Led::CapsLock);
-        eprintln!("{:?}", report.leds.bits);
+        eprintln!("{:?}", report.leds.bits());
         assert_eq!(report.count_lit(), 1);
 
         report.on_leds(Leds::ScrollLock);

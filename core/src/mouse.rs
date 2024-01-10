@@ -1,4 +1,4 @@
-use bitmask_enum::bitmask;
+use bitflags::bitflags;
 use core::mem::{size_of, transmute};
 use static_assertions::const_assert_eq;
 
@@ -36,37 +36,45 @@ impl core::fmt::Display for Mouse {
     }
 }
 
-/// Button mask
-#[bitmask(u8)]
-pub enum Buttons {
-    /// Primary button
-    ///
-    /// Usually left for right hand.
-    Primary = 0x01,
+bitflags! {
+    /// Button mask
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+    pub struct Buttons: u8 {
+        /// Primary button
+        ///
+        /// Usually left for right hand.
+        const Primary = 0x01;
 
-    /// Secondary button
-    ///
-    /// Usually right for right hand.
-    Secondary = 0x02,
+        /// Secondary button
+        ///
+        /// Usually right for right hand.
+        const Secondary = 0x02;
 
-    /// Tertiary button
-    ///
-    /// Usually middle.
-    Tertiary = 0x04,
+        /// Tertiary button
+        ///
+        /// Usually middle.
+        const Tertiary = 0x04;
+    }
 }
 
 const_assert_eq!(size_of::<Buttons>(), 1);
 
 impl Default for Buttons {
     fn default() -> Self {
-        Self::none()
+        Self::empty()
     }
 }
 
 impl Buttons {
     /// Converts from raw value safely
     pub fn safe_from(raw: u8) -> Option<Self> {
-        Some(Self::from(raw))
+        Self::from_bits(raw)
+    }
+}
+
+impl From<Buttons> for u8 {
+    fn from(btns: Buttons) -> Self {
+        btns.bits()
     }
 }
 
@@ -95,7 +103,7 @@ code_enum! {
 
 impl From<Buttons> for Button {
     fn from(mods: Buttons) -> Self {
-        let off = mods.bits.trailing_zeros() as u8;
+        let off = mods.bits().trailing_zeros() as u8;
         if off < 3 {
             Button::from(off + 1)
         } else {
@@ -107,7 +115,7 @@ impl From<Buttons> for Button {
 impl From<Button> for Buttons {
     fn from(key: Button) -> Self {
         let code = key as u8;
-        Buttons::from(if code != 0 { 1 << (code - 1) } else { 0 })
+        Buttons::from_bits_retain(if code != 0 { 1 << (code - 1) } else { 0 })
     }
 }
 
@@ -159,7 +167,7 @@ impl MouseInput {
 
     /// Get number of pressed buttons
     pub fn count_pressed(&self) -> usize {
-        self.button.bits.count_ones() as _
+        self.button.bits().count_ones() as _
     }
 
     /// Get iterator over pressed buttons
@@ -307,9 +315,9 @@ impl<'i> Iterator for MouseInputChanges<'i> {
         loop {
             if self.element < 8 {
                 // find changed buttons
-                let buttons = Buttons::from(1 << self.element);
+                let buttons = Buttons::from_bits_retain(1 << self.element);
                 self.element += 1;
-                if Buttons::none() != ((self.new.button ^ self.old.button) & buttons) {
+                if Buttons::empty() != ((self.new.button ^ self.old.button) & buttons) {
                     let button = Button::from(buttons);
                     let old_button = Button::from(self.old.button & buttons);
                     return Some(MouseInputChange::Button(StateChange::new(
@@ -431,7 +439,7 @@ impl<'i> Iterator for PressedButtons<'i> {
 
     fn next(&mut self) -> Option<Self::Item> {
         while self.element < 8 {
-            let mask = Buttons::from(1u8 << self.element);
+            let mask = Buttons::from_bits_retain(1u8 << self.element);
             self.element += 1;
             if self.report.button.contains(mask) {
                 return Some(mask.into());
@@ -463,7 +471,7 @@ mod test {
     #[test]
     fn button_mask_to_code() {
         assert_eq!(Button::from(Buttons::default()), Button::None);
-        assert_eq!(Button::from(Buttons::from(0)), Button::None);
+        assert_eq!(Button::from(Buttons::empty()), Button::None);
         assert_eq!(Button::from(Buttons::Primary), Button::Primary);
         assert_eq!(Button::from(Buttons::Secondary), Button::Secondary);
         assert_eq!(Button::from(Buttons::Tertiary), Button::Tertiary);

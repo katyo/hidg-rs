@@ -4,7 +4,7 @@ resolver = "2"
 
 [workspace.dependencies]
 static_assertions = "1"
-bitmask-enum = "2"
+bitflags = "2"
 either = "1"
 unicase = "2"
 anyhow = "1"

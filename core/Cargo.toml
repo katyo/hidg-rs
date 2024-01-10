@@ -11,7 +11,7 @@ edition = "2021"
 
 [dependencies]
 static_assertions.workspace = true
-bitmask-enum.workspace = true
+bitflags.workspace = true
 
 [dependencies.serde]
 workspace = true
