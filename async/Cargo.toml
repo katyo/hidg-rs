@@ -1,5 +1,5 @@
 [package]
-name = "async-std-hidg"
+name = "async-hidg"
 description = "Linux USB HID Gadget emulation for async-std runtime"
 version = "0.1.2"
 authors = ["K. <kayo@illumium.org>"]
@@ -16,12 +16,14 @@ default-features = false
 [dependencies.async-io]
 workspace = true
 
-[dependencies.async-std]
+[dependencies.blocking]
 workspace = true
 
-[dev-dependencies.async-std]
+[dev-dependencies.smol]
 workspace = true
-features = ["attributes"]
+
+[dev-dependencies.smol-potat]
+workspace = true
 
 [features]
 default = ["fromstr", "display", "phf", "keyboard", "mouse"]

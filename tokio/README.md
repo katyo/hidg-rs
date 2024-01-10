@@ -15,8 +15,8 @@ Since all functionality is dependent on Linux function calls, this crate only co
 
 - [hidg-core](https://crates.io/crates/hidg-core) - core abstractions and low level interface (not for end users)
 - [hidg](https://crates.io/crates/hidg) - std interface which supports synchronous operation only
-- **[tokio-hidg](https://crates.io/crates/tokio-hidg)** - async interface for [tokio](https://tokio.rs/) adepts
-- [async-std-hidg](https://crates.io/crates/async-std-hidg) - async interface for [async-std](https://async.rs/) adepts
+- **[tokio-hidg](https://crates.io/crates/tokio-hidg)** - async interface for [tokio](https://tokio.rs/) runtime
+- [async-hidg](https://crates.io/crates/async-hidg) - async interface for other runtimes
 
 ## Features
 

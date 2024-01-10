@@ -1,5 +1,5 @@
 [workspace]
-members = ["core", "tokio", "async-std"]
+members = ["core", "tokio", "async"]
 resolver = "2"
 
 [workspace.dependencies]
@@ -7,6 +7,10 @@ static_assertions = "1"
 bitflags = "2"
 either = "1"
 unicase = "2"
+async-io = "2"
+blocking = "1"
+smol = "2"
+smol-potat = "1"
 anyhow = "1"
 rustyline = "10"
 clap = "4"
@@ -22,12 +26,6 @@ features = ["macros"]
 [workspace.dependencies.tokio]
 version = "1"
 default-features = false
-
-[workspace.dependencies.async-io]
-version = "1"
-
-[workspace.dependencies.async-std]
-version = "1"
 
 [workspace.dependencies.hidg-core]
 path = "core"

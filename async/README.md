@@ -1,13 +1,13 @@
 # HID Gadget Emulation in Rust
 
 [![github](https://img.shields.io/badge/github-katyo/hidg--rs-8da0cb.svg?style=for-the-badge&logo=github)](https://github.com/katyo/hidg-rs)
-[![crate](https://img.shields.io/crates/v/async-std-hidg.svg?style=for-the-badge&color=fc8d62&logo=rust)](https://crates.io/crates/async-std-hidg)
-[![docs](https://img.shields.io/badge/docs.rs-async--std--hidg-66c2a5?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyByb2xlPSJpbWciIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDUxMiA1MTIiPjxwYXRoIGZpbGw9IiNmNWY1ZjUiIGQ9Ik00ODguNiAyNTAuMkwzOTIgMjE0VjEwNS41YzAtMTUtOS4zLTI4LjQtMjMuNC0zMy43bC0xMDAtMzcuNWMtOC4xLTMuMS0xNy4xLTMuMS0yNS4zIDBsLTEwMCAzNy41Yy0xNC4xIDUuMy0yMy40IDE4LjctMjMuNCAzMy43VjIxNGwtOTYuNiAzNi4yQzkuMyAyNTUuNSAwIDI2OC45IDAgMjgzLjlWMzk0YzAgMTMuNiA3LjcgMjYuMSAxOS45IDMyLjJsMTAwIDUwYzEwLjEgNS4xIDIyLjEgNS4xIDMyLjIgMGwxMDMuOS01MiAxMDMuOSA1MmMxMC4xIDUuMSAyMi4xIDUuMSAzMi4yIDBsMTAwLTUwYzEyLjItNi4xIDE5LjktMTguNiAxOS45LTMyLjJWMjgzLjljMC0xNS05LjMtMjguNC0yMy40LTMzLjd6TTM1OCAyMTQuOGwtODUgMzEuOXYtNjguMmw4NS0zN3Y3My4zek0xNTQgMTA0LjFsMTAyLTM4LjIgMTAyIDM4LjJ2LjZsLTEwMiA0MS40LTEwMi00MS40di0uNnptODQgMjkxLjFsLTg1IDQyLjV2LTc5LjFsODUtMzguOHY3NS40em0wLTExMmwtMTAyIDQxLjQtMTAyLTQxLjR2LS42bDEwMi0zOC4yIDEwMiAzOC4ydi42em0yNDAgMTEybC04NSA0Mi41di03OS4xbDg1LTM4Ljh2NzUuNHptMC0xMTJsLTEwMiA0MS40LTEwMi00MS40di0uNmwxMDItMzguMiAxMDIgMzguMnYuNnoiPjwvcGF0aD48L3N2Zz4K)](https://docs.rs/async-std-hidg)
+[![crate](https://img.shields.io/crates/v/async-hidg.svg?style=for-the-badge&color=fc8d62&logo=rust)](https://crates.io/crates/async-hidg)
+[![docs](https://img.shields.io/badge/docs.rs-async--hidg-66c2a5?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyByb2xlPSJpbWciIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDUxMiA1MTIiPjxwYXRoIGZpbGw9IiNmNWY1ZjUiIGQ9Ik00ODguNiAyNTAuMkwzOTIgMjE0VjEwNS41YzAtMTUtOS4zLTI4LjQtMjMuNC0zMy43bC0xMDAtMzcuNWMtOC4xLTMuMS0xNy4xLTMuMS0yNS4zIDBsLTEwMCAzNy41Yy0xNC4xIDUuMy0yMy40IDE4LjctMjMuNCAzMy43VjIxNGwtOTYuNiAzNi4yQzkuMyAyNTUuNSAwIDI2OC45IDAgMjgzLjlWMzk0YzAgMTMuNiA3LjcgMjYuMSAxOS45IDMyLjJsMTAwIDUwYzEwLjEgNS4xIDIyLjEgNS4xIDMyLjIgMGwxMDMuOS01MiAxMDMuOSA1MmMxMC4xIDUuMSAyMi4xIDUuMSAzMi4yIDBsMTAwLTUwYzEyLjItNi4xIDE5LjktMTguNiAxOS45LTMyLjJWMjgzLjljMC0xNS05LjMtMjguNC0yMy40LTMzLjd6TTM1OCAyMTQuOGwtODUgMzEuOXYtNjguMmw4NS0zN3Y3My4zek0xNTQgMTA0LjFsMTAyLTM4LjIgMTAyIDM4LjJ2LjZsLTEwMiA0MS40LTEwMi00MS40di0uNnptODQgMjkxLjFsLTg1IDQyLjV2LTc5LjFsODUtMzguOHY3NS40em0wLTExMmwtMTAyIDQxLjQtMTAyLTQxLjR2LS42bDEwMi0zOC4yIDEwMiAzOC4ydi42em0yNDAgMTEybC04NSA0Mi41di03OS4xbDg1LTM4Ljh2NzUuNHptMC0xMTJsLTEwMiA0MS40LTEwMi00MS40di0uNmwxMDItMzguMiAxMDIgMzguMnYuNnoiPjwvcGF0aD48L3N2Zz4K)](https://docs.rs/async-hidg)
 [![MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![CI](https://img.shields.io/github/actions/workflow/status/katyo/hidg-rs/ci.yml?branch=master&style=for-the-badge&logo=github-actions&logoColor=white)](https://github.com/katyo/hidg-rs/actions?query=workflow%3ARust)
 
 Rust crate for interfacing with Linux HID Gadget devices (/dev/hidgX).
-This crate supports [async-std](https://async.rs/) async runtime.
+This crate supports non-tokio async runtimes like the [smol](https://github.com/smol-rs/smol) and [async-std](https://async.rs/).
 
 Since all functionality is dependent on Linux function calls, this crate only compiles for Linux systems.
 
@@ -15,8 +15,8 @@ Since all functionality is dependent on Linux function calls, this crate only co
 
 - [hidg-core](https://crates.io/crates/hidg-core) - core abstractions and low level interface (not for end users)
 - [hidg](https://crates.io/crates/hidg) - std interface which supports synchronous operation only
-- [tokio-hidg](https://crates.io/crates/tokio-hidg) - async interface for [tokio](https://tokio.rs/) adepts
-- **[async-std-hidg](https://crates.io/crates/async-std-hidg)** - async interface for [async-std](https://async.rs/) adepts
+- [tokio-hidg](https://crates.io/crates/tokio-hidg) - async interface for [tokio](https://tokio.rs/) runtime
+- **[async-hidg](https://crates.io/crates/async-hidg)** - async interface for other runtimes
 
 ## Features
 
@@ -32,9 +32,9 @@ Since all functionality is dependent on Linux function calls, this crate only co
 Keyboard input simulation:
 
 ```rust,no_run
-use async_std_hidg::{Class, Device, Keyboard, Key, Led, StateChange};
+use async_hidg::{Class, Device, Keyboard, Key, Led, StateChange};
 
-#[async_std::main]
+#[smol_potat::main]
 async fn main() -> std::io::Result<()> {
     let mut device = Device::<Keyboard>::open("hidg0").await?; // open device
 
@@ -78,9 +78,9 @@ async fn main() -> std::io::Result<()> {
 Mouse input simulation:
 
 ```rust,no_run
-use async_std_hidg::{Button, Class, Device, Mouse, StateChange, ValueChange};
+use async_hidg::{Button, Class, Device, Mouse, StateChange, ValueChange};
 
-#[async_std::main]
+#[smol_potat::main]
 async fn main() -> std::io::Result<()> {
     let mut device = Device::<Mouse>::open("hidg0").await?; // open device
 
