@@ -12,7 +12,7 @@ fn main() -> anyhow::Result<()> {
     match args.cmd {
         Cmd::Repl { class, path } => match class {
             Class::Keyboard => {
-                let mut dev = Device::open(Keyboard, path)?;
+                let mut dev = Device::<Keyboard>::open(path)?;
 
                 let mut rl = Editor::<Cli>::new()?;
                 rl.set_helper(Cli::new(class).into());
@@ -76,7 +76,7 @@ fn main() -> anyhow::Result<()> {
                 }
             }
             Class::Mouse => {
-                let mut dev = Device::open(Mouse, path)?;
+                let mut dev = Device::<Mouse>::open(path)?;
             }
         },
     }

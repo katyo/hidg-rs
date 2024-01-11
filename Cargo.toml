@@ -39,7 +39,7 @@ default-features = false
 [package]
 name = "hidg"
 description = "Linux USB HID Gadget emulation"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["K. <kayo@illumium.org>"]
 license = "MIT"
 readme = "README.md"
