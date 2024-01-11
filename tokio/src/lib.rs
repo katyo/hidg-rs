@@ -2,7 +2,7 @@
 #![deny(bad_style, missing_docs)]
 #![doc = include_str!("../README.md")]
 
-use hidg_core::{check_read, check_write, open};
+use hidg_core::{check_read, check_write, AsDevicePath};
 
 pub use hidg_core::{Class, Error, Result, StateChange, ValueChange};
 
@@ -20,22 +20,10 @@ pub use hidg_core::{
 use core::marker::PhantomData;
 use std::{
     fs::File,
-    io::{ErrorKind, Read, Write},
-    path::Path,
+    io::{Read, Write},
 };
 
-use tokio::{io::unix::AsyncFd, task::spawn_blocking};
-
-async fn asyncify<F, T>(f: F) -> Result<T>
-where
-    F: FnOnce() -> Result<T> + Send + 'static,
-    T: Send + 'static,
-{
-    match spawn_blocking(f).await {
-        Ok(res) => res,
-        Err(_) => Err(Error::new(ErrorKind::Other, "background task failed")),
-    }
-}
+use tokio::{fs::OpenOptions, io::unix::AsyncFd};
 
 /// HID Gadget Device
 pub struct Device<C: Class> {
@@ -44,10 +32,18 @@ pub struct Device<C: Class> {
 }
 
 impl<C: Class> Device<C> {
-    /// Open device by path or name
-    pub async fn open(path: impl AsRef<Path>) -> Result<Self> {
-        let path = path.as_ref().to_owned();
-        let file = AsyncFd::new(asyncify(move || open(path, false)).await?)?;
+    /// Open device by path or name or number
+    pub async fn open(device: impl AsDevicePath) -> Result<Self> {
+        let path = device.as_device_path();
+        let file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .custom_flags(libc::O_NONBLOCK)
+            .open(path)
+            .await?
+            .into_std()
+            .await;
+        let file = AsyncFd::new(file)?;
         Ok(Self {
             file,
             _class: PhantomData,

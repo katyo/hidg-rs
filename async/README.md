@@ -36,7 +36,7 @@ use async_hidg::{Class, Device, Keyboard, Key, Led, StateChange};
 
 #[smol_potat::main]
 async fn main() -> std::io::Result<()> {
-    let mut device = Device::<Keyboard>::open("hidg0").await?; // open device
+    let mut device = Device::<Keyboard>::open(0).await?; // open device
 
     // Create input report
     let mut input = Keyboard.input();

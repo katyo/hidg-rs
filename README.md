@@ -34,7 +34,7 @@ Keyboard input simulation:
 use hidg::{Class, Device, Keyboard, Key, Led, StateChange};
 
 fn main() -> std::io::Result<()> {
-    let mut device = Device::<Keyboard>::open("hidg0")?; // open device
+    let mut device = Device::<Keyboard>::open(0)?; // open device
 
     // Create input report
     let mut input = Keyboard.input();

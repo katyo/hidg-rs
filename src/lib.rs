@@ -4,12 +4,11 @@
 
 use core::marker::PhantomData;
 use std::{
-    fs::File,
+    fs::{File, OpenOptions},
     io::{Read, Write},
-    path::Path,
 };
 
-use hidg_core::{check_read, check_write, open};
+use hidg_core::{check_read, check_write, AsDevicePath};
 
 pub use hidg_core::{Class, Result, StateChange, ValueChange};
 
@@ -31,9 +30,12 @@ pub struct Device<C: Class> {
 }
 
 impl<C: Class> Device<C> {
-    /// Open device by path or name
-    pub fn open(path: impl AsRef<Path>) -> Result<Self> {
-        let file = open(path, false)?;
+    /// Open device by path or name or number
+    pub fn open(device: impl AsDevicePath) -> Result<Self> {
+        let path = device.as_device_path();
+
+        let file = OpenOptions::new().read(true).write(true).open(path)?;
+
         Ok(Self {
             file,
             _class: PhantomData,

@@ -32,10 +32,8 @@ pub use mouse::{
 };
 
 use std::{
-    fs::{File, OpenOptions},
     io::ErrorKind,
-    os::unix::fs::OpenOptionsExt,
-    path::Path,
+    path::{Path, PathBuf},
 };
 
 pub use std::io::{Error, Result};
@@ -46,8 +44,8 @@ pub struct Unknown;
 
 impl std::error::Error for Unknown {}
 
-impl std::fmt::Display for Unknown {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl core::fmt::Display for Unknown {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         f.write_str("Unknown")
     }
 }
@@ -208,27 +206,102 @@ pub trait Class {
     fn output(&self) -> Self::Output;
 }
 
-/// Open device by path or name
-pub fn open(path: impl AsRef<Path>, nonblock: bool) -> Result<File> {
-    let path = path.as_ref();
+/// Device path trait
+pub trait AsDevicePath {
+    /// Get absolute device path
+    fn as_device_path(&self) -> PathBuf;
+}
 
-    #[allow(unused)]
-    let mut full_path = None;
+impl AsDevicePath for Path {
+    fn as_device_path(&self) -> PathBuf {
+        if self.is_absolute() {
+            self.to_path_buf()
+        } else {
+            Path::new("/dev").join(self)
+        }
+    }
+}
 
-    let path = if path.is_absolute() {
-        path
-    } else {
-        full_path = Some(Path::new("dev").join(path));
-        full_path.as_ref().unwrap()
+impl AsDevicePath for &Path {
+    fn as_device_path(&self) -> PathBuf {
+        if self.is_absolute() {
+            self.to_path_buf()
+        } else {
+            Path::new("/dev").join(self)
+        }
+    }
+}
+
+impl AsDevicePath for PathBuf {
+    fn as_device_path(&self) -> PathBuf {
+        let path: &Path = self;
+        path.as_device_path()
+    }
+}
+
+impl AsDevicePath for &PathBuf {
+    fn as_device_path(&self) -> PathBuf {
+        let path: &Path = self;
+        path.as_device_path()
+    }
+}
+
+impl AsDevicePath for &str {
+    fn as_device_path(&self) -> PathBuf {
+        Path::new(self).as_device_path()
+    }
+}
+
+impl AsDevicePath for String {
+    fn as_device_path(&self) -> PathBuf {
+        let s: &str = self;
+        s.as_device_path()
+    }
+}
+
+impl AsDevicePath for &String {
+    fn as_device_path(&self) -> PathBuf {
+        let s: &str = self;
+        s.as_device_path()
+    }
+}
+
+impl AsDevicePath for usize {
+    fn as_device_path(&self) -> PathBuf {
+        format!("/dev/hidg{self}").as_device_path()
+    }
+}
+
+macro_rules! as_device_path {
+    ($($type:ty),*) => {
+        $(
+            impl AsDevicePath for $type {
+                fn as_device_path(&self) -> PathBuf {
+                    (*self as usize).as_device_path()
+                }
+            }
+        )*
     };
+}
 
-    pub const O_NONBLOCK: i32 = 2048;
+as_device_path!(u8, u16, u32, u64, i8, i16, i32, i64, isize);
 
-    OpenOptions::new()
-        .read(true)
-        .write(true)
-        .custom_flags(if nonblock { O_NONBLOCK } else { 0 })
-        .open(path)
+/// Wrapper to hide internals
+#[derive(Clone, Copy, Default)]
+pub struct Internal<T>(T);
+
+impl<T> core::ops::Deref for Internal<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<T> core::ops::DerefMut for Internal<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
 }
 
 /// Check write report length

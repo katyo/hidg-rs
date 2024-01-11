@@ -9,6 +9,9 @@ categories = ["os", "os::linux-apis", "asynchronous"]
 keywords = ["USB", "Gadget", "HID", "Linux", "Input"]
 edition = "2021"
 
+[dependencies]
+libc.workspace = true
+
 [dependencies.hidg-core]
 workspace = true
 default-features = false

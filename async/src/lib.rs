@@ -2,7 +2,7 @@
 #![deny(bad_style, missing_docs)]
 #![doc = include_str!("../README.md")]
 
-use hidg_core::{check_read, check_write, open};
+use hidg_core::{check_read, check_write, AsDevicePath};
 
 pub use hidg_core::{Class, Error, Result, StateChange, ValueChange};
 
@@ -19,9 +19,8 @@ pub use hidg_core::{
 
 use core::marker::PhantomData;
 use std::{
-    fs::File,
+    fs::{File, OpenOptions},
     io::{Read, Write},
-    path::Path,
 };
 
 use async_io::Async;
@@ -34,10 +33,12 @@ pub struct Device<C: Class> {
 }
 
 impl<C: Class> Device<C> {
-    /// Open device by path or name
-    pub async fn open(path: impl AsRef<Path>) -> Result<Self> {
-        let path = path.as_ref().to_owned();
-        let file = Async::new(asyncify(move || open(path, false)).await?)?;
+    /// Open device by path or name or number
+    pub async fn open(device: impl AsDevicePath) -> Result<Self> {
+        let path = device.as_device_path();
+        let file = Async::new(
+            asyncify(move || OpenOptions::new().read(true).write(true).open(path)).await?,
+        )?;
         Ok(Self {
             file,
             _class: PhantomData,

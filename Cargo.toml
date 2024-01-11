@@ -3,6 +3,7 @@ members = ["core", "tokio", "async"]
 resolver = "2"
 
 [workspace.dependencies]
+libc = "0.2"
 static_assertions = "1"
 bitflags = "2"
 either = "1"
