@@ -1,13 +1,15 @@
 [package]
 name = "async-hidg"
 description = "Linux USB HID Gadget emulation with async interface"
-version = "0.2.0"
-authors = ["K. <kayo@illumium.org>"]
-license = "MIT"
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+repository.workspace = true
+homepage.workspace = true
 readme = "README.md"
 categories = ["os", "os::linux-apis", "asynchronous"]
 keywords = ["USB", "Gadget", "HID", "Linux", "Input"]
-edition = "2021"
 
 [dependencies.hidg-core]
 workspace = true

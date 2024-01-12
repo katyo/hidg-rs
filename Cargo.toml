@@ -2,6 +2,14 @@
 members = ["core", "tokio", "async"]
 resolver = "2"
 
+[workspace.package]
+version = "0.2.0"
+authors = ["K. <kayo@illumium.org>"]
+license = "MIT"
+edition = "2021"
+repository = "https://github.com/katyo/hidg-rs"
+homepage = "https://github.com/katyo/hidg-rs"
+
 [workspace.dependencies]
 libc = "0.2"
 static_assertions = "1"
@@ -39,13 +47,15 @@ default-features = false
 [package]
 name = "hidg"
 description = "Linux USB HID Gadget emulation"
-version = "0.2.0"
-authors = ["K. <kayo@illumium.org>"]
-license = "MIT"
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+repository.workspace = true
+homepage.workspace = true
 readme = "README.md"
 categories = ["os", "os::linux-apis"]
 keywords = ["USB", "Gadget", "HID", "Linux", "Input"]
-edition = "2021"
 
 [dependencies.hidg-core]
 workspace = true

@@ -1,13 +1,15 @@
 [package]
 name = "hidg-core"
 description = "Linux USB HID Gadget emulation"
-version = "0.2.0"
-authors = ["K. <kayo@illumium.org>"]
-license = "MIT"
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+repository.workspace = true
+homepage.workspace = true
 readme = "README.md"
 categories = ["os", "os::linux-apis"]
 keywords = ["USB", "Gadget", "HID", "Linux", "Input"]
-edition = "2021"
 
 [dependencies]
 static_assertions.workspace = true

@@ -1,13 +1,15 @@
 [package]
 name = "hidg-cli"
 description = "Linux USB HID Gadget emulation. Command-line tool"
-version = "0.2.0"
-authors = ["K. <kayo@illumium.org>"]
-license = "MIT"
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+repository.workspace = true
+homepage.workspace = true
 readme = "README.md"
 categories = ["command-line-utilities"]
 keywords = ["USB", "Gadget", "HID", "Linux", "Input"]
-edition = "2021"
 publish = false
 
 [[bin]]
