@@ -38,10 +38,12 @@ default-features = false
 
 [workspace.dependencies.hidg-core]
 path = "core"
+version = "0.2"
 default-features = false
 
 [workspace.dependencies.hidg]
 path = ""
+version = "0.2"
 default-features = false
 
 [package]
